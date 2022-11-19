@@ -64,4 +64,10 @@ kompose convert --with-kompose-annotation=false -f docker-compose.yaml
 ##### Helm
 ```helm
 helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --debug --dry-run
+
+helm install cloudgeeks ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace --debug--dry-run
+
+helm install cloudgeeks ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace
+
+
 ```
