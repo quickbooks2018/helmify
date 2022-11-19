@@ -60,3 +60,8 @@ sudo mv ./kompose /usr/local/bin/kompose
 kompose convert --help
 kompose convert --with-kompose-annotation=false -f docker-compose.yaml
 ```
+
+##### Helm
+```helm
+helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --debug --dry-run
+```
