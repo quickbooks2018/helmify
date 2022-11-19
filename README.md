@@ -20,6 +20,10 @@
 
 ```helmify
 docker run --name helmify --network host -w /mnt -v "c:/users/Muhammad Asim/Desktop/helmify:/mnt" -id homebrew/brew:latest
+
+docker exec -it helmify bash
+
+brew install arttor/tap/helmify
 ```
 
 - Helmify commands From Directory
