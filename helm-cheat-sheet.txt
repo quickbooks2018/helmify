@@ -19,6 +19,10 @@ helm install hello ./ -f values.yaml --namespace datree --create-namespace --deb
 cd ..
 helm template -f hello/values.yaml --namespace datree --create-namespace hello/ --dry-run
 
+helm install hello ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace --debug
+ --dry-run
+
+
 ###############
 # Helm Template
 ###############
