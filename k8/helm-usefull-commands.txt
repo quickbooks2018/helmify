@@ -1,0 +1,383 @@
+helm ls -A
+helm repo ls
+helm template dirname
+
+####################################
+# Helm Lint for Helm Syntax Checking
+####################################
+helm lint dirname
+
+helm plugin ls
+
+######################
+# Basic Sample Release
+######################
+helm create hello
+cd hello
+helm install hello ./ -f values.yaml --namespace datree --create-namespace --debug --dry-run
+
+cd ..
+helm template -f hello/values.yaml --namespace datree --create-namespace hello/ --dry-run
+
+###############
+# Helm Template
+###############
+-----------------------------------------
+Note: Difference between Teample & Dryrun
+-----------------------------------------
+Template output is pure yaml does not need k8 connectivity with API Server
+Dy Run out is not pure yaml does need k8 connectivity with k8 API Server
+
+helm template dirname
+
+helm template -f env.yaml helloworld 
+
+ helm template -f env.yaml ./
+ 
+ helm template -f helloworld/env.yaml helloworld/
+ 
+helm upgrade --install nginx-alpine -f custom-values.yaml -f env.yaml ./ --namespace default --create-namespace
+
+helm template -f hello/values.yaml --namespace datree --create-namespace hello/
+
+helm template -f hello/values.yaml --namespace datree --create-namespace hello/ > pureyaml.yaml
+
+helm template -f hello/values.yaml --namespace datree --create-namespace hello/ --dry-run # Note: dry run will talk to kubernetes API server & output of this is proper yaml
+
+
+#############
+# Diff Plugin
+#############
+# https://github.com/databus23/helm-diff
+
+helm plugin ls
+
+helm plugin install https://github.com/databus23/helm-diff 
+
+helm history release-name -n learning
+
+helm diff revision release-name 1 2
+
+helm diff revision hello 1 2 -n learning
+
+hub wordpress  --max-col-width=0  | grep -i bitnami/wordpress
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+########
+# README
+########
+helm show readme bitnami/wordpress --version 10.0.3
+
+##########
+# Versions
+##########
+helm search repo wordpress --versions
+
+########
+# Values
+########
+helm show values bitnami/wordpress --version 10.0.3
+
+wordpressUsername: cloudgeeks
+wordpressPassword: cloudgeeks
+wordpressEmail: info@cloudgeeks.ca
+wordpressFirstName: Muhammad
+wordpressLastName: Asim
+wordpressBlogName: cloudgeeks.ca
+service: 
+  type: LoadBalancer
+
+##############
+# Installation
+##############
+helm upgrade --install wordpress bitnami/wordpress  --values=wordpress-values.yaml --namespace wordpress --create-namespace --version 10.0.3
+
+#######
+# Watch
+#######
+watch -x kubectl get all --namespace wordpress
+
+########
+# Dryrun
+########
+helm install --dry-run --debug
+ 
+ helm install nginx-alpine ./ -f values.yaml --namespace learning --create-namespace --debug --dry-run
+ 
+             # release-name
+helm install nginx-alpine --debug --dry-run helloworld
+
+             # environment variable file
+helm install nginx-alpine -f helloworld/env.yaml helloworld  --debug --dry-run
+
+               # release-name-absent
+helm install -f helloworld/env.yaml helloworld  --debug --dry-run 
+
+helm install -f helloworld/env.yaml helloworld  --debug --dry-run --generate-name
+
+###########
+# Rollback
+###########
+             # release-name
+helm rollback nginx-alpine 1
+
+#########
+# History
+#########
+helm history release-name
+
+##############
+# Helm Secrets
+##############
+SOPS is an editor of encrypted files that supports YAML, JSON, ENV, INI and BINARY formats and encrypts with AWS KMS, GCP KMS, Azure Key Vault, age, and PGP
+https://github.com/mozilla/sops/releases
+
+curl -LO -# https://github.com/mozilla/sops/releases/download/v3.7.2/sops-v3.7.2.linux.amd64
+
+mv sops-v3.7.2.linux.amd64 sops
+chmod +x sops
+mv sops /usr/local/bin
+
+# Modern encryption tool age (AGE)
+https://github.com/FiloSottile/age
+age is a simple, modern and secure file encryption tool, format, and Go library.
+
+apt install -y age
+
+age-keygen -o key.txt
+
+mkdir -p ~/.config/sops/age
+
+mv key.txt ~/.config/sops/age/keys.txt
+
+# this will create default encryption rules  # copy public key from key.txt age1z03hnu6s5a37hahytvl8y7zme669r47p0yz2zwfss5quz3t83sgs23n5ha
+cat << EOF > .sops.yaml
+creation_rules:
+  -  age: age1zq6mygn07kzvt2ar435ea2jvy9pg52ta5zczjeq0kmjzw8cv0vcqr3hl0t
+
+EOF
+
+cat << EOF > values.secrets.yaml
+username: "root"
+password: "12345678"
+EOF
+
+#########
+# Encrypt
+##########
+helm secrets enc values.secrets.yaml
+
+#########
+# Decrypt
+#########
+helm secrets dec values.secrets.yaml
+
+helm secrets view values.secrets.yaml
+
+export GPG_TTY=$(tty) # incase of error
+
+################
+# Helm NOTES.txt
+################
+cat << EOF > NOTES.txt
+deployment command
+helm upgrade --install nginx-alpine ./ --namespace learning --create-namespace
+helm release name {{ .Release.Name }}
+helm chart name {{ .Chart.Name }}
+EOF
+
+#################
+# Sample Release
+#################
+helm create hello
+
+helm ---> templates ---> secrets.yaml
+
+cat << EOF > secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: credentials
+  labels:
+    app: app
+    chart: '{{ .Chart.Name }}-{{ .Chart.Version }}'
+    release: '{{ .Release.Name }}'
+    heritage: '{{ .Release.Service }}'
+type: Opaque
+data:
+  password: {{ .Values.password | b64enc | quote }}
+  username: {{ .Values.username | b64enc | quote }}
+
+EOF
+
+# Reference in deployment
+cat << EOF > deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hello.fullname" . }}
+  labels:
+    {{- include "hello.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hello.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hello.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "hello.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: credentials
+                  key: password
+            - name: MY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: credentials
+                  key: username
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+EOF
+
+######################################
+# Helm command for secrets deployment
+######################################
+helm secrets install nginx-alpine ./ -f values.yaml -f values.secrets.yaml --namespace learning --create-namespace
+
+helm secrets upgrade --install nginx-alpine ./ -f values.yaml -f values.secrets.yaml --namespace learning --create-namespace
+
+
+##########
+# Helm Get 
+###########
+helm get INSTALLATIONNAME
+
+helm get INSTALLATIONNAME values
+# this will show the values of last deployment via helm
+
+helm get INSTALLATIONNAME values --all
+# this will show all the values of last deployment via helm
+
+helm get INSTALLATIONNAME values --revision 1
+# this will show the values of specific deployment via helm
+
+helm get INSTALLATIONNAME values --revision 2
+# this will show the values of specific deployment via helm
+
+###############
+# Helm Manifest
+################
+helm get manifest INSTALLATIONNAME
+# this will get the manifest of the existing last deployed 
+
+
+helm get manifest INSTALLATIONNAME --revision 1
+# this will get the manifest of the specific version deployed 
+
+
+helm get manifest INSTALLATIONNAME --revision 2
+# this will get the manifest of the specific version deployed 
+
+##############
+# Helm History
+##############
+kubectl get secrets -n default
+# this will show also the helm versions as well
+
+helm history INSTALLATIONNAME
+# this will show all the deployed history with revisions
+
+###############
+# Helm RollBack
+###############
+helm rollback INSTALLATIONNAME 1
+# Rollback to revision 1
+
+helm rollback INSTALLATION 3
+# Rollback to revision 3
+
+##################################
+# Helm Uninstall with Keep History
+##################################
+helm uninstall INSTALLATIONNAME --keep-history
+# Even after you uninstall the history will be there in secrets section & you can again redeploy with Helm RollBack
+
+##############
+# Helm TimeOut 
+##############
+helm upgrade --install nginx-alpine -f custom-values.yaml -f env.yaml ./ --namespace default --create-namespace --wait --timeout 10m25s
+
+# this is usefull when your installation is taking more time example: image pull take time or network latency issues
+
+#############
+# Helm Atomic
+#############
+helm upgrade --install nginx-alpine -f custom-values.yaml -f env.yaml ./ --namespace default --create-namespace --atomic -timeout 10m25s
+# atomic mean it will wait till all the k8 resources are succesfully deployed. default is 5 min
+# default timeout is 5 minutes
+# Note --wait be enabled automatically with ATOMIC
+# this is very usefull in CICD, incase of failed existing deployment, it will automatically rollback to previously successfull deployment
+
+####################################
+# Helm Atomic With CleanUp on Failure
+#####################################
+helm upgrade --install nginx-alpine -f custom-values.yaml -f env.yaml ./ --namespace default --create-namespace --atomic -timeout 10m25s --cleanup-on-fail
+# atomic mean it will wait till all the k8 resources are succesfully deployed. default is 5 min
+# cleanup-on-fail means it will cleanup all the resources if deployment is failed with new release
+# default timeout is 5 minutes
+# Note --wait be enabled automatically with ATOMIC
+# this is very usefull in CICD, incase of failed existing deployment, it will automatically rollback to previously successfull deployment & with cleanup
+
+
+############
+# Helm Force
+############
+helm upgrade --install nginx-alpine -f custom-values.yaml -f env.yaml ./ --namespace default --create-namespace --force
+# Do not use this in CICD, sometimes you want to delete the deployment & recreate it, this option will be helpfull.
