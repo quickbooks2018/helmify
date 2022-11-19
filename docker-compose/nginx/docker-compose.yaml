@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    container_name: nginx
+    
+
