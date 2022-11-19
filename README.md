@@ -69,5 +69,6 @@ helm install cloudgeeks ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/valu
 
 helm install cloudgeeks ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace
 
+helm upgrade --install cloudgeeks ./cloudgeeks-helm-chart/ -f ./cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace
 
 ```
