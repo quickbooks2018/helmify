@@ -19,9 +19,7 @@
 - Windows Linux MAC
 
 ```helmify
-docker network create home --attachable
-
-docker run --name helmify --network home -w /mnt -v "c:/users/Muhammad Asim/Desktop/helmify:/mnt" -id homebrew/brew:latest
+docker run --name helmify --network host -w /mnt -v "c:/users/Muhammad Asim/Desktop/helmify:/mnt" -id homebrew/brew:latest
 ```
 
 - Helmify commands From Directory
