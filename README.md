@@ -61,9 +61,9 @@ kompose convert --help
 kompose convert --with-kompose-annotation=false -f docker-compose.yaml
 ```
 
-##### Helm
+##### Helm Debug is for template & DryRun is for k8
 ```helm
-helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --dry-run
+helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --debug
 
 helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --debug --dry-run
 
