@@ -61,7 +61,7 @@ kompose convert --help
 kompose convert --with-kompose-annotation=false -f docker-compose.yaml
 ```
 
-##### Helm Debug is for template & DryRun is for k8
+##### Helm --dry-run & --debug both contact cluster but when you add template eg. Helm template --debug --dry-run it will not contact cluster
 ```helm
 helm template -f cloudgeeks-helm-chart/values.yaml --namespace cloudgeeks --create-namespace cloudgeeks-helm-chart/ --debug
 
