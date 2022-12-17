@@ -26,9 +26,11 @@ docker exec -it helmify bash
 brew install arttor/tap/helmify
 
 helmify --version
+```
 
-OR
+```helmify-python
 docker run --name helmify --network host -w /mnt -v "c:/users/Muhammad Asim/Desktop/helmify:/mnt" -id python:slim
+
 curl -# -LO https://github.com/arttor/helmify/releases/download/v0.3.22/helmify_0.3.22_Linux_64-bit.tar.gz
 tar -xzvf helmify_0.3.22_Linux_64-bit.tar.gz
 mv helmify /usr/local/bin
